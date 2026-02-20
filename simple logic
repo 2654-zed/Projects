@@ -1,0 +1,85 @@
+# ---------- TOOL DATABASE ----------
+
+tools = [
+    {
+        "name": "ChatGPT",
+        "capabilities": ["generate_text", "brainstorm", "summarize", "answer_questions"],
+        "best_for": ["marketing", "education", "general_business"],
+        "difficulty": "easy"
+    },
+    {
+        "name": "Canva AI",
+        "capabilities": ["design_graphics", "create_presentations", "branding_assets"],
+        "best_for": ["marketing", "social_media", "small_business"],
+        "difficulty": "easy"
+    }
+]
+
+# ---------- Interpret the User Task ----------
+
+
+def interpret_task(task_text: str) -> list:
+    task = task_text.lower()
+    components = []
+
+    if any(word in task for word in ["write", "email", "copy", "content"]):
+        components.append("generate_text")
+
+    if any(word in task for word in ["design", "logo", "graphic", "visual"]):
+        components.append("design_graphics")
+
+    if any(word in task for word in ["presentation", "slides", "pitch"]):
+        components.append("create_presentations")
+
+    return components
+
+
+# ---------- Score a Tool against needed capabilities ----------
+def score_tool(tool: dict, needed_capabilities: list) -> int:
+    score = 0
+    for capability in needed_capabilities:
+        if capability in tool["capabilities"]:
+            score += 1
+    return score
+
+# ---------- Rank all Tools ----------  
+def rank_tools(tools: list, needed_capabilities: list) -> list:
+    results = []
+
+    for tool in tools:
+        score = score_tool(tool, needed_capabilities)
+        if score > 0:
+            results.append((tool, score))
+
+    results.sort(key=lambda x: x[1], reverse=True)
+    return results
+
+# ---------- Explain why a Tool is recommended ----------
+def explain_match(tool: dict, needed_capabilities: list) -> str:
+    matches = [c for c in needed_capabilities if c in tool["capabilities"]]
+    return f"Matches your need for: {', '.join(matches)}"
+
+# ---------- Main Flow ----------
+def recommend_tools():
+    task = input("What do you want help with? ")
+
+    needed_capabilities = interpret_task(task)
+
+    if not needed_capabilities:
+        print("I couldn't understand the task yet.")
+        return
+
+    ranked = rank_tools(tools, needed_capabilities)
+
+    if not ranked:
+        print("No tools matched your request.")
+        return
+
+    print("\nTop Recommendations:\n")
+
+    for tool, score in ranked:
+        reason = explain_match(tool, needed_capabilities)
+        print(f"{tool['name']}  (score: {score})")
+        print(f"  → {reason}\n")
+
+recommend_tools()
